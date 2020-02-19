@@ -10,42 +10,38 @@ namespace GL.FileParser
 
         public string GetContent()
         {
+            return GetContent(true);    
+        }
+        public string GetContentWithoutUnicode()
+        {
+            return GetContent(false);
+        }
+        
+        public string GetContent(bool withUnicode)
+        {
             try
             {
                 using(StreamReader sr = new StreamReader(FilePath))
                 {
-                    return sr.ReadToEnd();
-                }
-            }
-            catch (IOException ex)
-            {
-                Console.WriteLine("Could not get content");
-                Console.WriteLine(ex.Message);
-                return ex.Message;
-            }
-        }
-
-        public string GetContentWithoutUnicode()
-        {
-            try
-            {
-                var i = File.OpenRead(FilePath);
-                byte[] b = new byte[1];
-                UTF8Encoding temp = new UTF8Encoding(true);
-                string result = "";
-
-                while (i.Read(b, 0, b.Length) > 0)
-                {
-                    var s = temp.GetChars(b);
-
-                    foreach (var c in s)
+                    if(withUnicode)
                     {
-                        if ((int)c < 0x80)
-                            result = result + new string(new[] { c });
+                        return sr.ReadToEnd();
                     }
+                    var sb = new StringBuilder();
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        foreach (var c in value)
+                        {
+                            if ( c < 0x80)
+                            {
+                                sb.Append(c);
+                            }
+                        }
+                        sb.AppendLine();
+                    }
+                    return sb.ToString();
                 }
-
-                return result;
             }
             catch (IOException ex)
             {
@@ -54,13 +50,14 @@ namespace GL.FileParser
                 return ex.Message;
             }
         }
-
+              
         public void SaveContent(string content)
         {
             try
             {
                 using (FileStream fs = File.Create(FilePath)) {
-                    AddText(fs, content);
+                    byte[] info = new UTF8Encoding(true).GetBytes(value);
+                    fs.Write(info, 0, info.Length);
                 }
             }
             catch (IOException ex)
@@ -68,12 +65,6 @@ namespace GL.FileParser
                 Console.WriteLine("Could not save content");
                 Console.WriteLine(ex.Message);
             }
-        }
-
-        private static void AddText(FileStream fs, string value)
-        {
-            byte[] info = new UTF8Encoding(true).GetBytes(value);
-            fs.Write(info, 0, info.Length);
         }
     }
 }
