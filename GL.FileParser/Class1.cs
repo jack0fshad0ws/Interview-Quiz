@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 
@@ -8,24 +8,20 @@ namespace GL.FileParser
     {
         public string FilePath { get; set; }
 
-        public string getContent()
+        public string GetContent()
         {
             try
             {
-                var i = File.OpenRead(FilePath);
-                byte[] b = new byte[10];
-                string result = "";
-
-                while (i.Read(b, 0, b.Length) > 0)
+                using(StreamReader sr = new StreamReader(FilePath))
                 {
-                    result = result + Encoding.ASCII.GetString(b);
+                    return sr.ReadToEnd();
                 }
-
-                return result;
             }
-            catch (Exception e)
+            catch (IOException ex)
             {
-                throw;
+                Console.WriteLine("Could not get content");
+                Console.WriteLine(ex.Message);
+                return ex.Message;
             }
         }
 
@@ -45,15 +41,17 @@ namespace GL.FileParser
                     foreach (var c in s)
                     {
                         if ((int)c < 0x80)
-                            result = result + new string(new[] { c});
+                            result = result + new string(new[] { c });
                     }
                 }
 
                 return result;
             }
-            catch (Exception e)
+            catch (IOException ex)
             {
-                throw;
+                Console.WriteLine("Could not get content");
+                Console.WriteLine(ex.Message);
+                return ex.Message;
             }
         }
 
@@ -61,17 +59,14 @@ namespace GL.FileParser
         {
             try
             {
-                using FileStream fs = File.Create(FilePath);
-                AddText(fs, content);
-
-                for (int i=1;i < 120;i++)
-                {
-                    AddText(fs, Convert.ToChar(i).ToString());
+                using (FileStream fs = File.Create(FilePath)) {
+                    AddText(fs, content);
                 }
             }
-            catch (Exception e)
+            catch (IOException ex)
             {
-                Console.WriteLine(e);
+                Console.WriteLine("Could not save content");
+                Console.WriteLine(ex.Message);
             }
         }
 
