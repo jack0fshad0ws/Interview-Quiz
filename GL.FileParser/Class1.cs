@@ -8,20 +8,24 @@ namespace GL.FileParser
     {
         public string FilePath { get; set; }
 
-        public string GetContent()
+        public string getContent()
         {
             try
             {
-                using(StreamReader sr = new StreamReader(FilePath))
+                var i = File.OpenRead(FilePath);
+                byte[] b = new byte[10];
+                string result = "";
+
+                while (i.Read(b, 0, b.Length) > 0)
                 {
-                    return sr.ReadToEnd();
+                    result = result + Encoding.ASCII.GetString(b);
                 }
+
+                return result;
             }
-            catch (IOException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Could not get content");
-                Console.WriteLine(ex.Message);
-                return ex.Message;
+                throw;
             }
         }
 
@@ -41,17 +45,15 @@ namespace GL.FileParser
                     foreach (var c in s)
                     {
                         if ((int)c < 0x80)
-                            result = result + new string(new[] { c });
+                            result = result + new string(new[] { c});
                     }
                 }
 
                 return result;
             }
-            catch (IOException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Could not get content");
-                Console.WriteLine(ex.Message);
-                return ex.Message;
+                throw;
             }
         }
 
@@ -59,14 +61,17 @@ namespace GL.FileParser
         {
             try
             {
-                using (FileStream fs = File.Create(FilePath)) {
-                    AddText(fs, content);
+                using FileStream fs = File.Create(FilePath);
+                AddText(fs, content);
+
+                for (int i=1;i < 120;i++)
+                {
+                    AddText(fs, Convert.ToChar(i).ToString());
                 }
             }
-            catch (IOException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Could not save content");
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(e);
             }
         }
 
